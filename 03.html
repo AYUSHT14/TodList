@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive To-Do List</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f7f7f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            transition: background-color 0.3s ease;
+        }
+
+        #todo-container {
+            display: flex;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            width: 90%;
+            max-width: 900px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        #todo-container:hover {
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+        }
+
+        .task-list {
+            flex: 1;
+            padding: 20px;
+            background-color: #f0f0f0;
+            border-right: 1px solid #ddd;
+            transition: background-color 0.3s ease;
+        }
+
+        .task-list:hover {
+            background-color: #e8e8e8;
+        }
+
+        .task-form {
+            flex: 1;
+            padding: 20px;
+            background-color: #ffffff;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        input[type="text"] {
+            width: calc(100% - 24px);
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background-color: #fff;
+            border-bottom: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        li:hover {
+            background-color: #f1f1f1;
+            transform: scale(1.01);
+        }
+
+        .remove {
+            color: #dc3545;
+            font-size: 18px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .remove:hover {
+            transform: rotate(90deg);
+        }
+
+        .completed {
+            text-decoration: line-through;
+            color: grey;
+        }
+
+        .fade-out {
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="todo-container">
+    <div class="task-list">
+        <h2>Task List</h2>
+        <ul id="taskList"></ul>
+    </div>
+    <div class="task-form">
+        <h2>Add Task</h2>
+        <input type="text" id="taskInput" placeholder="Add a new task...">
+        <button onclick="addTask()">Add Task</button>
+    </div>
+</div>
+
+<script>
+   
+    window.onload = function() {
+        loadTasks();
+    };
+
+    function loadTasks() {
+        const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        tasks.forEach(task => {
+            addTaskToDOM(task.text, task.completed);
+        });
+    }
+
+    function addTask() {
+        const taskInput = document.getElementById('taskInput');
+        const taskValue = taskInput.value.trim();
+
+        if (taskValue === '') {
+            alert('Please enter a task!');
+            return;
+        }
+
+        addTaskToDOM(taskValue, false);
+
+        saveTask(taskValue, false);
+        taskInput.value = ''
+    }
+
+    function addTaskToDOM(taskValue, completed) {
+        const taskList = document.getElementById('taskList');
+
+        const li = document.createElement('li');
+        li.innerHTML = `
+            <span onclick="toggleComplete(this)" class="${completed ? 'completed' : ''}">${taskValue}</span>
+            <span class="remove" onclick="removeTask(this)">&#10006;</span>
+        `;
+        taskList.appendChild(li);
+    }
+
+    function saveTask(taskValue, completed) {
+        const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        tasks.push({ text: taskValue, completed: completed });
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+
+    function removeTask(element) {
+        const taskList = document.getElementById('taskList');
+        const taskText = element.parentElement.firstChild.textContent;
+
+        element.parentElement.classList.add('fade-out');
+        
+        setTimeout(() => {
+            let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            tasks = tasks.filter(task => task.text !== taskText);
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+
+            taskList.removeChild(element.parentElement);
+        }, 500);
+    }
+
+    function toggleComplete(element) {
+        element.classList.toggle('completed');
+
+        const taskText = element.textContent;
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        tasks.forEach(task => {
+            if (task.text === taskText) {
+                task.completed = !task.completed;
+            }
+        });
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+</script>
+</body>
+</html>
